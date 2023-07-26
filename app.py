@@ -24,14 +24,12 @@ db_connection = mysql.connector.connect(
 #    with db_connection.cursor() as cursor:
 #        cursor.execute(f.read(), multi=True)
 #    db_connection.commit()
-
 #with open('sql/createKeywordUnivView.sql', 'r') as f:
 #    with db_connection.cursor() as cursor:
 #        sql_statements = f.read().split(';')
 #        for statement in sql_statements:
 #            cursor.execute(statement)
 #    db_connection.commit()
-
 
 cursor = db_connection.cursor()
 cursor.execute("SELECT name FROM keywordView")
