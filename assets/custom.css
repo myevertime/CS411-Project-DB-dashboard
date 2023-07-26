@@ -1,0 +1,86 @@
+/*Fonts ––––––––––––––––––––––––––––––––––––––––––––––––––*/
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+
+body{
+  margin: 0px;
+  padding: 0px;
+  background-color: #F3F4F9;
+  font-family: 'Roboto';
+  color: #203cb3;
+}
+
+.study-browser-banner {
+  background: rgb(2,21,70);
+  color: white;
+  padding: 1px;
+  padding-left: 24px;
+}
+
+.logo{
+  height: 35px;
+  padding: 6px;
+  margin-top: 3px;
+}
+
+.h2-title, .h2-title-mobile{
+  font-family: 'Roboto';
+  display: inline-block;
+  letter-spacing: 3.8px;
+  font-weight: 800;
+  font-size: 20px;
+}
+
+.h2-title-mobile{
+  display: none;
+}
+
+h5, h6{
+  font-family: 'Roboto';
+  font-weight: 600;
+  font-size: 16px;
+}
+
+h5{
+  padding-left: 42px;
+}
+
+.bg-white{
+  background-color: white;
+  padding: 10px 10px;
+  height: 100px;
+}
+
+.bg-white2{
+    background-color: white;
+    padding: 10px 10px;
+    height: 250px;
+  }
+  
+.app-body{
+  margin-left: 1%;
+}
+
+.card{
+  padding:10px 24px 48px 10px;
+  margin-left: 1%;
+}
+
+.card-left{
+  padding:48px 24px 48px 24px;
+  margin-left: 0px;
+}
+
+.padding-top-bot{
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.Select-control{
+  border: 1px solid #203cb3;
+}
+
+@media only screen and (max-width: 320px){
+  .Select-menu-outer, .Select-value{
+    font-size: 10.5px;
+  }
+}
