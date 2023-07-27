@@ -1,3 +1,5 @@
+import sys
+sys.path.append("utils/")
 from utils import *
 from mysql_utils import *
 from mongodb_utils import *
@@ -91,7 +93,8 @@ app.layout = html.Div(
                                         html.H4("Search By Areas"),
                                         dcc.Dropdown(
                                             id='keyword-filter',
-                                            options=[{'label': keyword, 'value': keyword} for keyword in keywords],
+                                            options=[{'label': keyword.title(), 'value': keyword} for keyword in keywords],
+                                            value = 'computer vision',
                                             placeholder='Select the area that you\'re interested in',
                                         ),
                                     ],
@@ -218,7 +221,7 @@ app.layout = html.Div(
                                         # Dropdown to select the key for filtering
                                         dcc.Dropdown(
                                             id='filter-key',
-                                            options=[{'label': name, 'value': name} for name in list(mongodb_df['name'])],
+                                            options=[{'label': name.title(), 'value': name} for name in list(mongodb_df['name'])],
                                             value = 'Neel Sundaresan',
                                             placeholder='Select the professor that you\'re interested in',
                                             style = {'width':'350px'} 
