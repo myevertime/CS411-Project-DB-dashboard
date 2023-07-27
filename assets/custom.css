@@ -36,6 +36,12 @@ body{
   display: none;
 }
 
+h4{
+    font-family: 'Montserrat';
+    font-weight: 1000;
+    font-size: 20px;
+}
+
 h5, h6{
   font-family: 'Montserrat';
   font-weight: 600;
@@ -65,7 +71,11 @@ h5{
     padding: 10px 10px;
     height: 100px;
 }
-  
+
+.row.app-body .four.columns {
+    margin: 0 1px; /* Adjust this value as needed to reduce the space */
+}
+
 .app-body{
   font-family: 'Montserrat';
   margin-left: 1%;
@@ -74,11 +84,13 @@ h5{
 .card{
   padding:10px 24px 48px 10px;
   margin-left: 1%;
+  margin-right: 1%;
 }
 
 .card-left{
-  padding:48px 24px 48px 24px;
-  margin-left: 0px;
+  padding:10px 24px 30px 10px;
+  margin-left: 1px;
+  margin-bottom: 1%;
 }
 
 .padding-top-bot{

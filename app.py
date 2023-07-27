@@ -14,6 +14,9 @@ app = dash.Dash(
 )
 server = app.server
 
+# Link the custom CSS file
+#app.css.append_css({"external_url": "assets/custom.css"})
+
 mysql = mysql_connector()
 mongodb = mongodb_connector()
 
@@ -71,7 +74,7 @@ app.layout = html.Div(
                 #html.P("")
             ],
         ),
-        # First left body of the App
+        # Second body of the App - Keyword Section
         html.Div(
             className="row app-body",
             children=[
@@ -85,7 +88,7 @@ app.layout = html.Div(
                                 html.Div(
                                     className="padding-top-bot",
                                     children=[
-                                        html.H6("Areas"),
+                                        html.H4("Search By Areas"),
                                         dcc.Dropdown(
                                             id='keyword-filter',
                                             options=[{'label': keyword, 'value': keyword} for keyword in keywords],
@@ -136,7 +139,7 @@ app.layout = html.Div(
                                 dash_table.DataTable(
                                     id='keyword-faculty-table',
                                     columns=[
-                                        {'name': 'Faculty', 'id': 'fac_name'},
+                                        {'name': 'Name', 'id': 'fac_name'},
                                         {'name': 'University', 'id': 'univ_name'},
                                         {'name': 'Publications', 'id': 'pub_cnt'},
                                         {'name': 'KRC', 'id': 'KRC'}
@@ -183,22 +186,9 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-                # Table
-                #html.Div(
-                #    className="eight columns card-left",
-                #    children=[
-                #        ##
-                #    ],
-                #),
-                #dcc.Store(id="error", storage_type="memory"),
-            ],
-        ),
-        # Second left body of the App
-        html.Div(
-            className="row app-body",
-            children=[
+                # Second body of the App - University Section
                 html.Div(
-                    className="five columns card",
+                    className="seven columns card-left",
                     children=[
                         html.Div(
                             className="bg-white user-control",
@@ -206,13 +196,32 @@ app.layout = html.Div(
                                 html.Div(
                                     className="padding-top-bot",
                                     children=[
-                                        html.H6("Professor"),
+                                        html.H4("Search By University"),
+                                        ##
+                                    ]
+                                )
+                            ]
+                        )
+                    ],
+                ),
+                # Third body of the App - Professor Section
+                html.Div(
+                    className="seven columns card-left",
+                    children=[
+                        html.Div(
+                            className="bg-white user-control",
+                            children=[
+                                html.Div(
+                                    className="padding-top-bot",
+                                    children=[
+                                        html.H4("Search By Professor"),
                                         # Dropdown to select the key for filtering
                                         dcc.Dropdown(
                                             id='filter-key',
                                             options=[{'label': name, 'value': name} for name in list(mongodb_df['name'])],
-                                            value = 'Agouris,Peggy',
+                                            value = 'Neel Sundaresan',
                                             placeholder='Select the professor that you\'re interested in',
+                                            style = {'width':'350px'} 
                                         ),
                                     ],
                                 ),
@@ -222,7 +231,7 @@ app.layout = html.Div(
                             className="bg-white2",
                             children=[
                                 # Bar chart to display filtered data
-                                html.Img(id="professor-img",src="", style={"width": "150px", "height": "200px", "border-radius": "80% / 50%", "margin-right": "10px"}),
+                                html.Img(id="professor-img",src="", style={"width": "150px", "height": "200px", "border-radius": "80% / 50%", "margin-right": "20px"}),
                                 dcc.Markdown(
                                     id="key-value-textarea",
                                     children="",
@@ -234,7 +243,7 @@ app.layout = html.Div(
                     ]
                 ),
             ],
-        )
+        ),
     ]
 )
 
@@ -306,7 +315,8 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
             photoUrl = json_['photoUrl']
             for key, value in json_.items():
                 if key != 'photoUrl' and not type(value) is NoneType:
-                    mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
+                    if value != "":
+                        mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
 
     return table_data1, table_data2, '', success_popup_displayed, mongo_data, photoUrl
 
