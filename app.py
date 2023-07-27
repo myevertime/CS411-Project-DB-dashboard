@@ -22,20 +22,20 @@ db_connection = mysql.connector.connect(
     database='academicworld'
 )
 
-## I don't know why but these code blocks keeps connecting the website
-## I'm figuring out on this - asked TA for help
-#---------------------------------
 ## Get the list of keywords by running keyword creation SQL file
-#with open('sql/createKeywordView.sql', 'r') as f:
-#    with db_connection.cursor() as cursor:
-#        cursor.execute(f.read(), multi=True)
-#    db_connection.commit()
-#with open('sql/createKeywordUnivView.sql', 'r') as f:
-#    with db_connection.cursor() as cursor:
-#        sql_statements = f.read().split(';')
-#        for statement in sql_statements:
-#            cursor.execute(statement)
-#    db_connection.commit()
+sql_lst = []
+with open('sql/createKeywordUnivView.sql', 'r') as f:
+    sql_statements = f.read().split(';')
+    for statement in sql_statements:
+        if statement != "":
+            sql_lst.append(statement)
+        #cursor.execute(statement)
+
+cursor = db_connection.cursor()
+for statement in sql_lst:
+    cursor.execute(statement)
+    db_connection.commit()
+cursor.close()
 
 cursor = db_connection.cursor()
 cursor.execute("SELECT name FROM keywordView")
@@ -73,7 +73,7 @@ app.layout = html.Div(
                                         dcc.Dropdown(
                                             id='keyword-filter',
                                             options=[{'label': keyword, 'value': keyword} for keyword in keywords],
-                                            placeholder='Select a domain that you\'re interested in',
+                                            placeholder='Select an area that you\'re interested in',
                                         ),
                                     ],
                                 ),

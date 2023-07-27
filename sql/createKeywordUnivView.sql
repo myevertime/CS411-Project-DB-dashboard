@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS keywordView AS (
+    SELECT id, name
+    FROM keyword
+    WHERE name in ('machine learning', 'artificial intelligence', 'computer vision', 'natural language processing')
+);
 CREATE TABLE IF NOT EXISTS univ_faculty AS (
     SELECT university_id, keyword_id, count(distinct id) as fac_cnt
     FROM (
