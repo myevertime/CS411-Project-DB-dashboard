@@ -10,60 +10,44 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash import dash_table
+import dash_cytoscape as cyto
 
 app = dash.Dash(
     __name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}]
 )
 server = app.server
 
-# Link the custom CSS file
-#app.css.append_css({"external_url": "assets/custom.css"})
-
 mysql = mysql_connector()
 mongodb = mongodb_connector()
 
-# Fetch data from MongoDB and convert to DataFrame
-collection = mongodb['faculty']
-pipeline = [
-    {'$unwind': '$keywords'},
-    {'$sort': {'keywords.score': -1}},
-    {'$group': {
-        '_id': '$_id',
-        'name': {'$first': '$name'},
-        'position': {'$first': '$position'},
-        'email': {'$first': '$email'},
-        'phone': {'$first': '$phone'},
-        'affiliation': {'$first': '$affiliation.name'},
-        'photoUrl': {'$first': '$photoUrl'},
-        'Top Keyword': {'$first': '$keywords.name'},
-        #'Keyword Score': {'$first': '$keywords.score'}
-    }},
-    {'$project': {'_id': 0, 'name': 1, 'position': 1, 'email': 1, 'phone': 1, 'affiliation': 1, 'photoUrl': 1, 'Top Keyword': 1}} #'Keyword Score': 1
-]
-data_from_mongo = list(collection.aggregate(pipeline))
-mongodb_df = pd.DataFrame(data_from_mongo)
 
-## Get the list of keywords by running keyword creation SQL file
+##-------------------------
+# Create Base Tables
 sql_lst = []
 with open('sql/createBaseTables.sql', 'r') as f:
     sql_statements = f.read().split(';')
     for statement in sql_statements:
         if statement != "":
             sql_lst.append(statement)
-        #cursor.execute(statement)
-
 cursor = mysql.cursor()
 for statement in sql_lst:
     cursor.execute(statement)
     mysql.commit()
 cursor.close()
 
+##-------------------------
+# Get query result from MongoDB
+data_from_mongo, mongodb_df = mongodb_query_result(mongodb)
+
+##-------------------------
+## Get the list of keywords by running keyword creation SQL file
 cursor = mysql.cursor()
 cursor.execute("SELECT name FROM keywordView")
 keywords = cursor.fetchall()
 keywords = [keyword[0] for keyword in keywords]
 cursor.close()
 
+##-------------------------
 # Define the layout of the dashboard
 app.layout = html.Div(
     children=[
@@ -73,7 +57,7 @@ app.layout = html.Div(
             children=[
                 html.H2(className="h2-title", children="University Explorer: Find your best-fit ML/AI University"),
                 html.H2(className="h2-title-mobile", children="University Explorer"),
-                #html.P("")
+                html.P("This website offers you the opportunity to explore the best-fit university for you, taking into account various aspects. Take your time to discover the perfect university match.")
             ],
         ),
         # Second body of the App - Keyword Section
@@ -112,9 +96,7 @@ app.layout = html.Div(
                                         {'name': 'Faculty', 'id': 'fac_cnt'},
                                         {'name': 'Publications', 'id': 'pub_cnt'},
                                         {'name': 'KRC', 'id': 'KRC'}
-                                        # Add more columns for other numeric features as needed
                                     ],
-                                    # Set the style properties for the table
                                     style_table={'overflowX': 'auto'},
                                     style_cell={
                                         'height': 'auto',
@@ -146,9 +128,7 @@ app.layout = html.Div(
                                         {'name': 'University', 'id': 'univ_name'},
                                         {'name': 'Publications', 'id': 'pub_cnt'},
                                         {'name': 'KRC', 'id': 'KRC'}
-                                        # Add more columns for other numeric features as needed
                                     ],
-                                    # Set the style properties for the table
                                     style_table={'overflowX': 'auto'},
                                     style_cell={
                                         'height': 'auto',
@@ -222,7 +202,7 @@ app.layout = html.Div(
                                         dcc.Dropdown(
                                             id='filter-key',
                                             options=[{'label': name.title(), 'value': name} for name in list(mongodb_df['name'])],
-                                            value = 'Neel Sundaresan',
+                                            value = 'Nam Wook Kim',
                                             placeholder='Select the professor that you\'re interested in',
                                             style = {'width':'350px'} 
                                         ),
@@ -233,16 +213,114 @@ app.layout = html.Div(
                         html.Div(
                             className="bg-white2",
                             children=[
-                                # Bar chart to display filtered data
-                                html.Img(id="professor-img",src="", style={"width": "150px", "height": "200px", "border-radius": "80% / 50%", "margin-right": "20px"}),
+                                html.Img(id="professor-img",src="", style={"width": "100px", "height": "150px", "border-radius": "80% / 50%", "margin-right": "20px"}),
                                 dcc.Markdown(
                                     id="key-value-textarea",
                                     children="",
-                                    style={"width": "100%", "height": "200px", "border":"None", "outline":"None","line-height": "1.5", "font-family":"verdana"},
+                                    style={"width": "100%", "height": "150px", "border":"None", "outline":"None","line-height": "1.5", "font-family":"verdana"},
                                     dangerously_allow_html=True,
                                 ),
                             ], style={"display": "flex"}
                         ),
+                        cyto.Cytoscape(
+                            id='cytoscape-network',
+                            layout={'name': 'cose'},
+                            elements=[],
+                            style={'height': '200px', 'width':'800px'},
+                            stylesheet=[
+                                {
+                                    'selector': 'node, edge',
+                                    'style': {
+                                        'background-color': 'white'
+                                    }
+                                },
+                                # Style for nodes (hide node labels)
+                                {
+                                    'selector': 'node',
+                                    'style': {
+                                        'label': '',  # Hide node labels
+                                        'width': '25px',  # Set the node size
+                                        'height': '25px',
+                                    }
+                                },
+                                # Style for edges (show edge labels)
+                                {
+                                    'selector': 'edge[label]',
+                                    'style': {
+                                        'label': 'data(label)',  # Show edge labels
+                                        'width':3,
+                                        'font-size':'15px',
+                                        "text-background-opacity": 0.2,
+                                        "text-background-color": "#fff",
+                                        'curve-style': 'bezier',
+                                        'target-arrow-shape': 'triangle'
+                                    }
+                                },
+                                {
+                                    'selector': '.institute',
+                                    'style': {
+                                        'background-color': '#aec7e8',  # Light blue
+                                        'line-color': '#aec7e8'
+                                    }
+                                },
+                                {
+                                    'selector': '.faculty',
+                                    'style': {
+                                        'background-color': '#1f77b4',  # blue
+                                        'line-color': '#1f77b4'
+                                    }
+                                },
+                                {
+                                    'selector': '.keyword',
+                                    'style': {
+                                        'background-color': '#98df8a',  # Greenish blue
+                                        'line-color': '#98df8a'
+                                    }
+                                },
+                                {
+                                    'selector': '.publication',
+                                    'style': {
+                                        'background-color': '#9edae5',  # Blueish green
+                                        'line-color': '#9edae5'
+                                    }
+                                },
+                            ]
+                        ),
+                        # Legend for node colors
+                        html.Div(
+                            className='legend',
+                            children=[
+                                html.Div(
+                                    className='legend-item',
+                                    children=[
+                                        html.Span(className='legend-circle', style={'background-color': '#1f77b4'}),
+                                        html.Span('Faculty', className='legend-label')
+                                    ]
+                                ),
+                                html.Div(
+                                    className='legend-item',
+                                    children=[
+                                        html.Span(className='legend-circle', style={'background-color': '#aec7e8'}),
+                                        html.Span('Institute', className='legend-label')
+                                    ]
+                                ),
+                                html.Div(
+                                    className='legend-item',
+                                    children=[
+                                        html.Span(className='legend-circle', style={'background-color': '#98df8a'}),
+                                        html.Span('Keyword', className='legend-label')
+                                    ]
+                                ),
+                                html.Div(
+                                    className='legend-item',
+                                    children=[
+                                        html.Span(className='legend-circle', style={'background-color': '#9edae5'}),
+                                        html.Span('Publication', className='legend-label')
+                                    ]
+                                )
+                            ], style={'display': 'flex', 'flex-direction': 'row'}
+                        ),
+                        html.Pre(id='cytoscape-tapNodeData', style={'border': 'thin lightgrey solid','overflowX': 'auto'}),
                     ]
                 ),
             ],
@@ -255,15 +333,12 @@ app.layout = html.Div(
     [Output('keyword-univ-table', 'data'),
     Output('keyword-faculty-table', 'data'),
     Output('update-keyword', 'value'),
-    Output('update-success-popup', 'displayed'),
-    Output("key-value-textarea", "children"),
-    Output("professor-img", "src")],
+    Output('update-success-popup', 'displayed'),],
     [Input('keyword-filter', 'value'),
-    Input('update-button', 'n_clicks'),
-    Input('filter-key', 'value')],
+    Input('update-button', 'n_clicks'),],
     [State('update-keyword', 'value')]
 )
-def update_table(keyword, n_clicks, filter_key, update_keyword_value):
+def keyword_section(keyword, n_clicks, update_keyword_value):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     success_popup_displayed = False
@@ -296,7 +371,7 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
 
     table_data2 = [{'fac_name': row['fac_name'], 'univ_name': row['univ_name'], 'pub_cnt':row['pub_cnt'], 'KRC':row['KRC']} for _, row in filtered_df2.iterrows()]
     
-    # Check which input triggered the callback
+    ## Check which input triggered the callback
     if trigger_id == 'update-button':
         # Update the database with the user keyword input from the web UI
         cursor = mysql.cursor()
@@ -310,6 +385,31 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
 
         success_popup_displayed = True
     
+    return table_data1, table_data2, '', success_popup_displayed
+
+@app.callback(
+    Output('cytoscape-tapNodeData', 'children'),
+    Input('cytoscape-network', 'mouseoverNodeData'),
+)
+def update_professor_graphproperty(node_data):
+    if node_data:
+        property = """"""
+        # Display the properties as a JSON string (customize this display as needed)
+        for key, value in node_data.items():
+            if not type(value) is NoneType:
+                if value != "" and value != "nan":
+                    property += f"🔹 {key.capitalize()} : {value}\n"
+    else:
+        property = "Hover over a node to see its properties."
+    return property
+
+@app.callback(
+    [Output("key-value-textarea", "children"),
+    Output("professor-img", "src"),
+    Output('cytoscape-network', 'elements'),],
+    [Input('filter-key', 'value'),]
+)
+def update_professor(filter_key):
     # professor section
     mongo_data = ""
     photoUrl = ""
@@ -320,8 +420,10 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
                 if key != 'photoUrl' and not type(value) is NoneType:
                     if value != "":
                         mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
-
-    return table_data1, table_data2, '', success_popup_displayed, mongo_data, photoUrl
+    if filter_key:
+        # professor section - network graph
+        elements = draw_networkgraph(filter_key)
+    return mongo_data, photoUrl, elements
 
 # Run the app
 if __name__ == '__main__':

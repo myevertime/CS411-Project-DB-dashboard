@@ -102,6 +102,33 @@ h5{
   border: 1px solid #203cb3;
 }
 
+.legend {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+  }
+  
+  .legend-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .legend-label {
+    font-size: 14px;
+    color: gray;
+  }
+
 @media only screen and (max-width: 320px){
   .Select-menu-outer, .Select-value{
     font-size: 10.5px;
