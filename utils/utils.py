@@ -15,7 +15,7 @@ def query_neo4j_for_graph_data(faculty_name):
         OPTIONAL MATCH (publication:PUBLICATION)-[r3:LABEL_BY]->(keyword)
         OPTIONAL MATCH (faculty)-[r4:PUBLISH]->(publication)
         RETURN faculty, institute, keyword, publication
-        LIMIT 2
+        LIMIT 1
         """
 
     with driver.session(database="academicworld") as session:

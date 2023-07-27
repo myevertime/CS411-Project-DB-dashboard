@@ -58,6 +58,10 @@ h5{
   height: 80px;
 }
 
+.custom-background {
+    background-color: white;
+}
+
 .bg-white2{
     font-family: 'Montserrat';
     background-color: white;
@@ -65,12 +69,25 @@ h5{
     height: 250px;
 }
 
-.bg-white3{
+.bg-white3 {
+    font-family: 'Montserrat';
+    padding: 10px 10px;
+    height: 250px;
+}
+
+.bg-white4 {
+    font-family: 'Montserrat';
+    padding: 10px 10px;
+    margin-left: 50%;
+}
+
+.update-keyword{
     font-family: 'Montserrat';
     background-color: white;
     padding: 10px 10px;
     height: 100px;
 }
+
 
 .row.app-body .four.columns {
     margin: 0 1px; /* Adjust this value as needed to reduce the space */
