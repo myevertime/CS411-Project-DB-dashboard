@@ -1,37 +1,39 @@
+from utils import *
+from mysql_utils import *
+from mongodb_utils import *
+from neo4j_utils import *
+
 import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash import dash_table
-import mysql.connector
-import pandas as pd
-from pymongo import MongoClient
-
-# Create the Dash app
-group_colors = {"control": "light blue", "reference": "red"}
 
 app = dash.Dash(
     __name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}]
 )
 server = app.server
 
-# Connect to the MySQL database (Make sure to update the credentials)
-db_connection = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    password='test_root',
-    database='academicworld'
-)
-
-# Connect to local MongoDB
-client = MongoClient('localhost', 27017)
-mongodb = client['academicworld']
+mysql = mysql_connector()
+mongodb = mongodb_connector()
 
 # Fetch data from MongoDB and convert to DataFrame
 collection = mongodb['faculty']
 pipeline = [
-    {'$unwind': '$affiliation'},
-    {'$project': {'_id': 0, 'name': 1, 'position': 1, 'email' : 1,'phone' : 1, 'affiliation': '$affiliation.name', 'photoUrl' : 1}}
+    {'$unwind': '$keywords'},
+    {'$sort': {'keywords.score': -1}},
+    {'$group': {
+        '_id': '$_id',
+        'name': {'$first': '$name'},
+        'position': {'$first': '$position'},
+        'email': {'$first': '$email'},
+        'phone': {'$first': '$phone'},
+        'affiliation': {'$first': '$affiliation.name'},
+        'photoUrl': {'$first': '$photoUrl'},
+        'Top Keyword': {'$first': '$keywords.name'},
+        #'Keyword Score': {'$first': '$keywords.score'}
+    }},
+    {'$project': {'_id': 0, 'name': 1, 'position': 1, 'email': 1, 'phone': 1, 'affiliation': 1, 'photoUrl': 1, 'Top Keyword': 1}} #'Keyword Score': 1
 ]
 data_from_mongo = list(collection.aggregate(pipeline))
 mongodb_df = pd.DataFrame(data_from_mongo)
@@ -45,13 +47,13 @@ with open('sql/createBaseTables.sql', 'r') as f:
             sql_lst.append(statement)
         #cursor.execute(statement)
 
-cursor = db_connection.cursor()
+cursor = mysql.cursor()
 for statement in sql_lst:
     cursor.execute(statement)
-    db_connection.commit()
+    mysql.commit()
 cursor.close()
 
-cursor = db_connection.cursor()
+cursor = mysql.cursor()
 cursor.execute("SELECT name FROM keywordView")
 keywords = cursor.fetchall()
 keywords = [keyword[0] for keyword in keywords]
@@ -221,11 +223,11 @@ app.layout = html.Div(
                             children=[
                                 # Bar chart to display filtered data
                                 html.Img(id="professor-img",src="", style={"width": "150px", "height": "200px", "border-radius": "80% / 50%", "margin-right": "10px"}),
-                                dcc.Textarea(
+                                dcc.Markdown(
                                     id="key-value-textarea",
-                                    value="",
-                                    style={"width": "100%", "height": "200px", "border":"None", "outline":"None"},
-                                    readOnly=True,
+                                    children="",
+                                    style={"width": "100%", "height": "200px", "border":"None", "outline":"None","line-height": "1.5", "font-family":"verdana"},
+                                    dangerously_allow_html=True,
                                 ),
                             ], style={"display": "flex"}
                         ),
@@ -242,7 +244,7 @@ app.layout = html.Div(
     Output('keyword-faculty-table', 'data'),
     Output('update-keyword', 'value'),
     Output('update-success-popup', 'displayed'),
-    Output("key-value-textarea", "value"),
+    Output("key-value-textarea", "children"),
     Output("professor-img", "src")],
     [Input('keyword-filter', 'value'),
     Input('update-button', 'n_clicks'),
@@ -255,7 +257,7 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
     success_popup_displayed = False
 
     ## First Table: keyword filter on university list
-    cursor = db_connection.cursor()
+    cursor = mysql.cursor()
     query = "SELECT * FROM keyword_univ_final"
     cursor.execute(query)
     result = cursor.fetchall()
@@ -269,7 +271,7 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
     table_data1 = [{'univ_name': row['university_name'], 'fac_cnt': row['fac_cnt'], 'pub_cnt':row['pub_cnt'], 'KRC':row['KRC']} for _, row in filtered_df.iterrows()]
     
     ## Second Table: keyword filter on faculty list
-    cursor = db_connection.cursor()
+    cursor = mysql.cursor()
     query = "SELECT * FROM keyword_faculty_final"
     cursor.execute(query)
     result = cursor.fetchall()
@@ -285,13 +287,13 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
     # Check which input triggered the callback
     if trigger_id == 'update-button':
         # Update the database with the user keyword input from the web UI
-        cursor = db_connection.cursor()
+        cursor = mysql.cursor()
         query = "SELECT max(id) FROM keyword"
         cursor.execute(query)
         max_id = cursor.fetchall()
         query = f"INSERT INTO keyword VALUES({max_id[0][0]+1},'{update_keyword_value}')"
         cursor.execute(query)
-        db_connection.commit()
+        mysql.commit()
         cursor.close()
 
         success_popup_displayed = True
@@ -303,8 +305,8 @@ def update_table(keyword, n_clicks, filter_key, update_keyword_value):
         if json_['name'] == filter_key:
             photoUrl = json_['photoUrl']
             for key, value in json_.items():
-                if key != 'photoUrl' and value != "":
-                    mongo_data += f"{key.capitalize()} : {value}\n"
+                if key != 'photoUrl' and not type(value) is NoneType:
+                    mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
 
     return table_data1, table_data2, '', success_popup_displayed, mongo_data, photoUrl
 
