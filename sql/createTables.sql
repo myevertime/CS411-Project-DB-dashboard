@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE VIEW kpi_faculty AS(
     SELECT COUNT(*) FROM faculty
 );

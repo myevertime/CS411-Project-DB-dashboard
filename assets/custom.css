@@ -56,6 +56,13 @@ h5, h6{
   height: 80px;
 }
 
+.bg-white5{ /* for update section */
+  background-color: white;
+  padding: 10px 10px;
+  height: 450px;
+  margin-top: 10px;
+}
+
 .custom-background {
     background-color: white;
     padding: 10px 10px;

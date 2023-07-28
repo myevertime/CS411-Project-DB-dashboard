@@ -1,5 +1,6 @@
 from types import NoneType
 from neo4j_utils import *
+from mysql_utils import *
 import pandas as pd
 import plotly.graph_objs as go
 import networkx as nx
@@ -7,6 +8,7 @@ import requests
 import json
 import openai
 import os
+import atexit
 
 import concurrent.futures
 
@@ -173,3 +175,19 @@ def check_image_url(photoUrl):
         return response.status_code == 200
     except requests.exceptions.RequestException:
         return False
+import atexit
+import mysql.connector
+
+# Function to drop views on app termination
+def drop_views_on_exit(view_lst):
+    try:
+        for view_name in view_lst:
+            conn = mysql_connector()
+            cursor = conn.cursor()
+            drop_view_query = f"DROP VIEW IF EXISTS {view_name}"
+            cursor.execute(drop_view_query)
+            conn.commit()
+            conn.close()
+            print(f"View '{view_name}' dropped successfully.")
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")

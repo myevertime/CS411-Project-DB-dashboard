@@ -139,7 +139,7 @@ app.layout = html.Div(
                 ], className='kpi-card'),
             ], className='kpi-container'
         ),
-        # Second body of the App - Keyword Section
+        # First body of the App - Keyword Section
         html.Div(
             className="row app-body",
             children=[
@@ -431,7 +431,13 @@ app.layout = html.Div(
                         html.Pre(id='cytoscape-tapNodeData', style={'border': 'thin lightgrey solid','overflowX': 'auto'}),
                     ]
                 ),
-                # Third body of the App - University Section
+            ],
+        ),
+        # Third body of the App - University Section
+        html.Div(
+            className="row app-body",
+            children=[
+                # User Controls
                 html.Div(
                     className="seven columns card",
                     children=[
@@ -441,16 +447,66 @@ app.layout = html.Div(
                                 html.Div(
                                     className="padding-top-bot",
                                     children=[
-                                        html.H4("Search By University"),
+                                        html.H4("Search by university"),
                                         ##
                                     ]
                                 )
                             ]
                         )
-                    ],
+                    ]
                 ),
-            ],
-        ),
+                # Fourth body of the App - Update Section
+                html.Div(
+                    className="five columns card",
+                    children=[
+                        html.Div(
+                            className="bg-white5",
+                            children=[
+                                html.Div(
+                                    className="bg-white",
+                                    children=[
+                                        html.H4("Found Bugs? Please update the correct data here"),
+                                        html.P("You can only correct the professor information since all other dashboards are based on aggregated data."),
+                                    ], style={'margin-bottom': '30px'}
+                                ),
+                                html.Div(
+                                    #className="bg-white5 custom-background",
+                                    children=[
+                                        html.Div([
+                                            dcc.Input(id='input-name', type='text', placeholder='Enter original name (required)', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                            dcc.Input(id='input-corrected-name', type='text', placeholder='Enter corrected name', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                        ], style={'margin-bottom': '10px'}),
+                                        html.Div([
+                                            dcc.Input(id='input-position', type='text', placeholder='Enter original position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                            dcc.Input(id='input-corrected-position', type='text', placeholder='Enter corrected position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                        ], style={'margin-bottom': '10px'}),
+                                        html.Div([
+                                            dcc.Input(id='input-email', type='text', placeholder='Enter original email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                            dcc.Input(id='input-corrected-email', type='text', placeholder='Enter corrected email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                        ], style={'margin-bottom': '10px'}),
+                                        html.Div([
+                                            dcc.Input(id='input-phone', type='text', placeholder='Enter original phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                            dcc.Input(id='input-corrected-phone', type='text', placeholder='Enter corrected phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                        ], style={'margin-bottom': '10px'}),
+                                        html.Button('Submit', id='submit-button', style={'width':'300px','height': '40px', 'font-size': '15px', 'text-align': 'center'})
+                                    ], style={'display': 'flex', 'flex-direction': 'column'}  
+                                ),
+                                # ConfirmDialog to show a pop-up when the update is successful
+                                dcc.ConfirmDialog(
+                                    id='revise-success-popup',
+                                    message='Update successful! Now search by newly updated data',
+                                ),
+                                # FailDialog to show a pop-up when the update is unsuccessful
+                                dcc.ConfirmDialog(
+                                    id='revise-fail-popup',
+                                    message='Update Failed! No matching record found for the given name and position.',
+                                ),
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
     ]
 )
 
@@ -582,6 +638,49 @@ def update_professor(filter_key):
 
     return mongo_data, photoUrl, elements, latest_publications, summary
 
+@app.callback(
+    [Output('revise-success-popup', 'displayed'),
+    Output('revise-fail-popup', 'displayed'),],
+    [Input('submit-button', 'n_clicks')],
+    [State('input-name', 'value'),
+     State('input-position', 'value'),
+     State('input-corrected-name', 'value'),
+     State('input-corrected-position', 'value'),
+     State('input-phone', 'value'),
+     State('input-email', 'value'),
+     State('input-corrected-phone', 'value'),
+     State('input-corrected-email', 'value'),]
+)
+def update_mongo_data(n_clicks, name, position, corrected_name, corrected_position, phone, email, corrected_phone, corrected_email):
+    success_popup_displayed = False
+    fail_popup_displayed = False
+    if n_clicks and name and (corrected_name or corrected_position or corrected_phone or corrected_email):
+        # Find the matching record based on the provided name and position
+        matching_record = mongodb['faculty'].find_one({'name': name, 'position': position, 'phone':phone, 'email':email})
+
+        if matching_record:
+            update_data = {}
+            if corrected_name:
+                update_data['name'] = corrected_name
+            if corrected_position:
+                update_data['position'] = corrected_position
+            if corrected_phone:
+                update_data['phone'] = corrected_phone
+            if corrected_email:
+                update_data['email'] = corrected_email
+            # Perform the update in MongoDB
+            mongodb['faculty'].update_one({'_id': matching_record['_id']}, {'$set': update_data})
+
+            # Return a confirmation message
+            success_popup_displayed = True
+        else:
+            fail_popup_displayed = True
+    return success_popup_displayed, fail_popup_displayed
+
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+    # Register the cleanup function with atexit
+    view_lst = ['kpi_faculty','kpi_publication','kpi_university']
+    atexit.register(drop_views_on_exit(view_lst))
