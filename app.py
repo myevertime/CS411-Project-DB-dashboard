@@ -17,23 +17,35 @@ app = dash.Dash(
 )
 server = app.server
 
-mysql = mysql_connector()
+#connection_pool = mysql_connector_pool()
+mysqldb = mysql_connector()
 mongodb = mongodb_connector()
-
 
 ##-------------------------
 # Create Base Tables
 sql_lst = []
-with open('sql/createBaseTables.sql', 'r') as f:
+with open('sql/createTables.sql', 'r') as f:
     sql_statements = f.read().split(';')
     for statement in sql_statements:
-        if statement != "":
+        if statement.strip() != "":
             sql_lst.append(statement)
-cursor = mysql.cursor()
+
+cursor = mysqldb.cursor()
 for statement in sql_lst:
     cursor.execute(statement)
-    mysql.commit()
+    mysqldb.commit()
 cursor.close()
+
+##-------------------------
+# Parallel Execution of SQL queries
+#max_threads = 4
+# Execute SQL statements in parallel using ThreadPoolExecutor
+#with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+#    futures = [executor.submit(execute_sql_statement, connection_pool, statement) for statement in sql_lst]
+# Wait for all tasks to complete
+#concurrent.futures.wait(futures)
+## Above code produces table locks by using same connections
+
 
 ##-------------------------
 # Get query result from MongoDB
@@ -41,10 +53,26 @@ data_from_mongo, mongodb_df = mongodb_query_result(mongodb)
 
 ##-------------------------
 ## Get the list of keywords by running keyword creation SQL file
-cursor = mysql.cursor()
+cursor = mysqldb.cursor()
 cursor.execute("SELECT name FROM keywordView")
 keywords = cursor.fetchall()
 keywords = [keyword[0] for keyword in keywords]
+cursor.close()
+
+## Get the count for KPI charts
+cursor = mysqldb.cursor()
+cursor.execute("SELECT * FROM kpi_faculty")
+kpi_faculty = cursor.fetchall()[0][0]
+cursor.close()
+
+cursor = mysqldb.cursor()
+cursor.execute("SELECT * FROM kpi_publication")
+kpi_publication = cursor.fetchall()[0][0]
+cursor.close()
+
+cursor = mysqldb.cursor()
+cursor.execute("SELECT * FROM kpi_university")
+kpi_university = cursor.fetchall()[0][0]
 cursor.close()
 
 ##-------------------------
@@ -59,6 +87,57 @@ app.layout = html.Div(
                 html.H2(className="h2-title-mobile", children="University Explorer"),
                 html.P(className="sub-title", children="This website offers you the opportunity to explore the best-fit university for you, taking into account various aspects.") #Take your time to discover the perfect university match.
             ],
+        ),
+        html.H4("Current Database Size", style={'font-weight': 'bold', 'margin-left':'20px'}),
+        html.Div(
+            [
+                html.Div([
+                    html.H6("Number of Faculties", style={'text-align': 'center'}),
+                    dcc.Graph(
+                        id='professors-kpi', 
+                        figure={
+                            'data': [{
+                                'type': 'indicator',
+                                'value': kpi_faculty,
+                                'number': {'valueformat': ',', 'font': {'size': 20}},
+                                'mode': 'number'
+                            }],
+                            'layout': {"height": 30, 'paper_bgcolor':'rgba(0,0,0,0)','plot_bgcolor':'rgba(0,0,0,0)'} #'layout': {'title': 'Number of Faculties'}
+                        },
+                    )
+                ], className='kpi-card'),
+                html.Div([
+                    html.H6("Number of Universities", style={'text-align': 'center'}),
+                    dcc.Graph(
+                        id='universities-kpi',
+                        figure={
+                            'data': [{
+                                'type': 'indicator',
+                                'value': kpi_university,
+                                'number': {'valueformat': ',', 'font': {'size': 20}},
+                                'mode': 'number'
+                            }],
+                            'layout': {"height": 30, 'paper_bgcolor':'rgba(0,0,0,0)','plot_bgcolor':'rgba(0,0,0,0)'} #'title': 'Number of Universities'}
+                        },
+                    )
+                ], className='kpi-card'),
+                html.Div([
+                    html.H6("Number of Publications", style={'text-align': 'center'}),
+                    dcc.Graph(
+                        id='publication-kpi',
+                        figure={
+                            'data': [{
+                                'type': 'indicator',
+                                'value': kpi_publication,
+                                'number': {'valueformat': ',', 'font': {'size': 20}},
+                                'mode': 'number'
+                            }],
+                            'layout': {"height": 30, 'paper_bgcolor':'rgba(0,0,0,0)','plot_bgcolor':'rgba(0,0,0,0)'} #'layout': {'title': 'Number of Universities'}
+                        },
+                        style={'backgroundColor': 'transparent'}
+                    )
+                ], className='kpi-card'),
+            ], className='kpi-container'
         ),
         # Second body of the App - Keyword Section
         html.Div(
@@ -167,6 +246,11 @@ app.layout = html.Div(
                             id='update-success-popup',
                             message='Update successful! We will start to collect new data that you gave, so stay tuned! :)',
                         ),
+                        # FailDialog to show a pop-up when the update is unsuccessful
+                        dcc.ConfirmDialog(
+                            id='update-fail-popup',
+                            message='Update Failed! You should insert more than 3 characters',
+                        ),
                     ],
                 ),
                 # Second body of the App - Professor Section
@@ -210,7 +294,8 @@ app.layout = html.Div(
                                                 ),
                                                 html.Div(
                                                     id="publications-section",
-                                                    className="publication",
+                                                    className="publication user-control",
+                                                    style={"max-height": "500px", "overflow-y": "auto"},
                                                     children=[
                                                         html.H5("Latest Publications"),
                                                         dcc.Markdown(id="publications-text", children="")
@@ -218,7 +303,7 @@ app.layout = html.Div(
                                                 ),
                                                 html.Div(
                                                     id="summary-section",
-                                                    className="summary",
+                                                    className="summary user-control",
                                                     children=[
                                                         html.H5("Summary by ChatGPT"),
                                                         dcc.Markdown(id="summary-text", children="")
@@ -374,7 +459,8 @@ app.layout = html.Div(
     [Output('keyword-univ-table', 'data'),
     Output('keyword-faculty-table', 'data'),
     Output('update-keyword', 'value'),
-    Output('update-success-popup', 'displayed'),],
+    Output('update-success-popup', 'displayed'),
+    Output('update-fail-popup', 'displayed'),],
     [Input('keyword-filter', 'value'),
     Input('update-button', 'n_clicks'),],
     [State('update-keyword', 'value')]
@@ -383,9 +469,10 @@ def keyword_section(keyword, n_clicks, update_keyword_value):
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
     success_popup_displayed = False
+    fail_popup_displayed = False
 
     ## First Table: keyword filter on university list
-    cursor = mysql.cursor()
+    cursor = mysqldb.cursor()
     query = "SELECT * FROM keyword_univ_final"
     cursor.execute(query)
     result = cursor.fetchall()
@@ -399,7 +486,7 @@ def keyword_section(keyword, n_clicks, update_keyword_value):
     table_data1 = [{'univ_name': row['university_name'], 'fac_cnt': row['fac_cnt'], 'pub_cnt':row['pub_cnt'], 'KRC':row['KRC']} for _, row in filtered_df.iterrows()]
     
     ## Second Table: keyword filter on faculty list
-    cursor = mysql.cursor()
+    cursor = mysqldb.cursor()
     query = "SELECT * FROM keyword_faculty_final"
     cursor.execute(query)
     result = cursor.fetchall()
@@ -415,18 +502,28 @@ def keyword_section(keyword, n_clicks, update_keyword_value):
     ## Check which input triggered the callback
     if trigger_id == 'update-button':
         # Update the database with the user keyword input from the web UI
-        cursor = mysql.cursor()
-        query = "SELECT max(id) FROM keyword"
-        cursor.execute(query)
-        max_id = cursor.fetchall()
-        query = f"INSERT INTO keyword VALUES({max_id[0][0]+1},'{update_keyword_value}')"
-        cursor.execute(query)
-        mysql.commit()
-        cursor.close()
+        cursor = mysqldb.cursor()
+        try:
+            # Get the maximum ID from the 'keyword' table
+            query = "SELECT max(id) FROM keyword"
+            cursor.execute(query)
+            max_id = cursor.fetchall()
 
-        success_popup_displayed = True
+            # Generate the INSERT query with the new ID and name
+            new_id = max_id[0][0] + 1
+            query = f"INSERT INTO keyword (ID, name) VALUES({new_id}, '{update_keyword_value}')"
+            cursor.execute(query)
+            mysqldb.commit()
+            success_popup_displayed = True
+
+        except mysql.connector.Error as e:
+            # Handle MySQL errors (e.g., check constraint violations, unique key violations)
+            #mysqldb.rollback()  # Rollback the transaction to undo the changes
+            fail_popup_displayed = True
+        finally:
+            cursor.close()
     
-    return table_data1, table_data2, '', success_popup_displayed
+    return table_data1, table_data2, '', success_popup_displayed, fail_popup_displayed
 
 @app.callback(
     Output('cytoscape-tapNodeData', 'children'),
@@ -461,7 +558,7 @@ def update_professor(filter_key):
     mongo_data = ""
     elements = []
     photoUrl = "assets/No-Image-Placeholder.png"
-    
+
     if filter_key:
         for json_ in data_from_mongo:
             if json_['name'] == filter_key:

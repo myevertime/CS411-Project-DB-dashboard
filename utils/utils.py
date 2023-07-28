@@ -6,11 +6,13 @@ import networkx as nx
 import requests
 import json
 import openai
+import os
+
+import concurrent.futures
 
 # Keep API Key to credentials.py
 from credentials import SERP_API_KEY
 from credentials import OPENAI_API_KEY
-
 
 
 def query_neo4j_for_graph_data(faculty_name):
@@ -139,7 +141,7 @@ def fetch_google_scholar_publications(professor_name):
             title = item["title"]
             link = item["link"]
             #snippet = item["snippet"]
-            publication_info = f"**[{link}]({title})**\n" 
+            publication_info = f"**[{title}]({link})**\n" 
             publications.append(publication_info)
             return "\n".join(publications[:1])
     else:
@@ -154,6 +156,7 @@ def generate_prompt(mongo_data, elements):
     return prompt
 
 def generate_summary_by_gpt(mongo_data, elements):
+    openai.api_key = f"{OPENAI_API_KEY}"
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo", messages=[{"role": "system", "content": f"{generate_prompt(mongo_data, elements)}"}]
@@ -161,6 +164,7 @@ def generate_summary_by_gpt(mongo_data, elements):
         return response.choices[0].message['content']
     except Exception as e:
         # Handle the exception here and provide a default response
+        print(e)
         return "There was an error processing the request.\n\nPlease try again later."
 
 def check_image_url(photoUrl):

@@ -1,3 +1,3 @@
 # credentials.py
-SERP_API_KEY = ''
-OPENAI_API_KEY = ''
+SERP_API_KEY = '' # Replace your API Key here
+OPENAI_API_KEY = '' # Replace your API Key here
