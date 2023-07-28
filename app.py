@@ -57,7 +57,7 @@ app.layout = html.Div(
             children=[
                 html.H2(className="h2-title", children="University Explorer: Find your best-fit ML/AI University"),
                 html.H2(className="h2-title-mobile", children="University Explorer"),
-                html.P("This website offers you the opportunity to explore the best-fit university for you, taking into account various aspects. Take your time to discover the perfect university match.")
+                html.P(className="sub-title", children="This website offers you the opportunity to explore the best-fit university for you, taking into account various aspects.") #Take your time to discover the perfect university match.
             ],
         ),
         # Second body of the App - Keyword Section
@@ -169,58 +169,61 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-                # Second body of the App - University Section
+                # Second body of the App - Professor Section
                 html.Div(
                     className="seven columns card-left",
                     children=[
                         html.Div(
-                            className="bg-white user-control",
+                            className="bg-white3",
                             children=[
                                 html.Div(
-                                    className="padding-top-bot",
-                                    children=[
-                                        html.H4("Search By University"),
-                                        ##
-                                    ]
-                                )
-                            ]
-                        )
-                    ],
-                ),
-                # Third body of the App - Professor Section
-                html.Div(
-                    className="seven columns card-left custom-background",
-                    children=[
-                        html.Div(
-                            className="bg-white user-control custom-background",
-                            children=[
-                                html.Div(
-                                    className="bg-white3 custom-background",
+                                    className="bg-white",
                                     children=[
                                         html.H4("Search By Professor"),
                                         # Dropdown to select the key for filtering
                                         html.Div(
-                                            #className="bg-white2",
+                                            #className="",
                                             children=[
-                                                dcc.Dropdown(
-                                                    id='filter-key',
-                                                    options=[{'label': name.title(), 'value': name} for name in list(mongodb_df['name'])],
-                                                    value = '',
-                                                    placeholder='Select the professor that you\'re interested in',
-                                                    style = {'width':'350px', 'margin-bottom':'20px'} 
+                                                html.Div(
+                                                    children = [
+                                                        dcc.Dropdown(
+                                                            id='filter-key',
+                                                            options=[{'label': name.title(), 'value': name} for name in list(mongodb_df['name'])],
+                                                            value = '',
+                                                            placeholder='Search the professor name',
+                                                            style = {'width':'350px', 'margin-bottom':'20px', 'margin-right':'15px'} 
+                                                        ),
+                                                        html.H6("Explore the network information of the professor."),
+                                                    ], style={"display": "flex"} 
                                                 ),
                                                 html.Div(
                                                     #className="bg-white3",
                                                     children=[
-                                                        html.Img(id="professor-img",src="", style={"width": "100px", "height": "150px", "border-radius": "80% / 50%", "margin-right": "20px"}),
+                                                        html.Img(id="professor-img",src="assets/No-Image-Placeholder.png", style={"width": "100px", "height": "150px", "border-radius": "80% / 50%", "margin-right": "20px"}),
                                                         dcc.Markdown(
                                                             id="key-value-textarea",
                                                             children="",
-                                                            style={"width": "300px", "height": "300px", "border":"None", "outline":"None","line-height": "1.5", "font-family":"verdana"},
+                                                            style={"width": "300px", "height": "200px", "border":"None", "outline":"None","line-height": "1.5", "font-family":"verdana"},
                                                             dangerously_allow_html=True,
                                                         ),
                                                     ], style={"display": "flex"}
-                                                )
+                                                ),
+                                                html.Div(
+                                                    id="publications-section",
+                                                    className="publication",
+                                                    children=[
+                                                        html.H5("Latest Publications"),
+                                                        dcc.Markdown(id="publications-text", children="")
+                                                    ]
+                                                ),
+                                                html.Div(
+                                                    id="summary-section",
+                                                    className="summary",
+                                                    children=[
+                                                        html.H5("Summary by ChatGPT"),
+                                                        dcc.Markdown(id="summary-text", children="")
+                                                    ]
+                                                ),
                                             ]
                                         ),
                                     ],
@@ -230,75 +233,80 @@ app.layout = html.Div(
                         html.Div(
                             className="bg-white4 custom-background",
                             children=[
-                                cyto.Cytoscape(
-                                    id='cytoscape-network',
-                                    layout={'name': 'circle'},
-                                    elements=[],
-                                    style={'height': '400px', 'width':'600px'},
-                                    stylesheet=[
-                                        {
-                                            'selector': 'node, edge',
-                                            'style': {
-                                                'background-color': 'white'
-                                            }
-                                        },
-                                        # Style for nodes (hide node labels)
-                                        {
-                                            'selector': 'node',
-                                            'style': {
-                                                'label': 'data(label)',  # Hide node labels
-                                                'font-size':'25px',
-                                                'text-wrap': 'wrap',
-                                                'text-max-width':'100px',
-                                                'text-valign': 'center',
-                                                'text-halign': 'center',
-                                                'width': '200px',  # Set the node size
-                                                'height': '200px',
-                                            },
-                                        },
-                                        # Style for edges (show edge labels)
-                                        {
-                                            'selector': 'edge[label]',
-                                            'style': {
-                                                'label': 'data(label)',  # Show edge labels
-                                                'width':3,
-                                                'font-size':'15px',
-                                                "text-background-opacity": 0.2,
-                                                "text-background-color": "#fff",
-                                                'curve-style': 'bezier',
-                                                'target-arrow-shape': 'triangle'
-                                            }
-                                        },
-                                        {
-                                            'selector': '.institute',
-                                            'style': {
-                                                'background-color': '#aec7e8',  # Light blue
-                                                'line-color': '#aec7e8'
-                                            }
-                                        },
-                                        {
-                                            'selector': '.faculty',
-                                            'style': {
-                                                'background-color': '#1f77b4',  # blue
-                                                'line-color': '#1f77b4'
-                                            }
-                                        },
-                                        {
-                                            'selector': '.keyword',
-                                            'style': {
-                                                'background-color': '#98df8a',  # Greenish blue
-                                                'line-color': '#98df8a'
-                                            }
-                                        },
-                                        {
-                                            'selector': '.publication',
-                                            'style': {
-                                                'background-color': '#9edae5',  # Blueish green
-                                                'line-color': '#9edae5'
-                                            }
-                                        },
+                                html.Div(
+                                    className="padding-top-bot cytograph",
+                                    children=[
+                                        cyto.Cytoscape(
+                                            id='cytoscape-network',
+                                            layout={'name': 'circle'},
+                                            elements=[],
+                                            style={'height': '400px', 'width':'400px'},
+                                            stylesheet=[
+                                                {
+                                                    'selector': 'node, edge',
+                                                    'style': {
+                                                        'background-color': 'white'
+                                                    }
+                                                },
+                                                # Style for nodes (hide node labels)
+                                                {
+                                                    'selector': 'node',
+                                                    'style': {
+                                                        'label': 'data(label)',  # Hide node labels
+                                                        'font-size':'25px',
+                                                        'text-wrap': 'wrap',
+                                                        'text-max-width':'100px',
+                                                        'text-valign': 'center',
+                                                        'text-halign': 'center',
+                                                        'width': '200px',  # Set the node size
+                                                        'height': '200px',
+                                                    },
+                                                },
+                                                # Style for edges (show edge labels)
+                                                {
+                                                    'selector': 'edge[label]',
+                                                    'style': {
+                                                        'label': 'data(label)',  # Show edge labels
+                                                        'width':3,
+                                                        'font-size':'15px',
+                                                        "text-background-opacity": 0.2,
+                                                        "text-background-color": "#fff",
+                                                        'curve-style': 'bezier',
+                                                        'target-arrow-shape': 'triangle'
+                                                    }
+                                                },
+                                                {
+                                                    'selector': '.institute',
+                                                    'style': {
+                                                        'background-color': '#aec7e8',  # Light blue
+                                                        'line-color': '#aec7e8'
+                                                    }
+                                                },
+                                                {
+                                                    'selector': '.faculty',
+                                                    'style': {
+                                                        'background-color': '#1f77b4',  # blue
+                                                        'line-color': '#1f77b4'
+                                                    }
+                                                },
+                                                {
+                                                    'selector': '.keyword',
+                                                    'style': {
+                                                        'background-color': '#98df8a',  # Greenish blue
+                                                        'line-color': '#98df8a'
+                                                    }
+                                                },
+                                                {
+                                                    'selector': '.publication',
+                                                    'style': {
+                                                        'background-color': '#9edae5',  # Blueish green
+                                                        'line-color': '#9edae5'
+                                                    }
+                                                },
+                                            ]
+                                        ),
                                     ]
-                                ),
+                                )
                             ], style={"display": "flex"}
                         ),
                         # Legend for node colors
@@ -337,6 +345,24 @@ app.layout = html.Div(
                         ),
                         html.Pre(id='cytoscape-tapNodeData', style={'border': 'thin lightgrey solid','overflowX': 'auto'}),
                     ]
+                ),
+                # Third body of the App - University Section
+                html.Div(
+                    className="seven columns card",
+                    children=[
+                        html.Div(
+                            className="bg-white user-control",
+                            children=[
+                                html.Div(
+                                    className="padding-top-bot",
+                                    children=[
+                                        html.H4("Search By University"),
+                                        ##
+                                    ]
+                                )
+                            ]
+                        )
+                    ],
                 ),
             ],
         ),
@@ -425,23 +451,39 @@ def update_professor_graphproperty(filter_key, node_data):
 @app.callback(
     [Output("key-value-textarea", "children"),
     Output("professor-img", "src"),
-    Output('cytoscape-network', 'elements'),],
+    Output('cytoscape-network', 'elements'),
+    Output("publications-text", "children"),
+    Output("summary-text", "children"),],
     [Input('filter-key', 'value'),]
 )
 def update_professor(filter_key):
     # professor section
     mongo_data = ""
-    photoUrl = ""
-    for json_ in data_from_mongo:
-        if json_['name'] == filter_key:
-            photoUrl = json_['photoUrl']
-            for key, value in json_.items():
-                if key != 'photoUrl' and not type(value) is NoneType:
-                    if value != "":
-                        mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
+    elements = []
+    photoUrl = "assets/No-Image-Placeholder.png"
+    
+    if filter_key:
+        for json_ in data_from_mongo:
+            if json_['name'] == filter_key:
+                photoUrl = json_['photoUrl']
+                if check_image_url(photoUrl):
+                    photoUrl = photoUrl
+                else:
+                    photoUrl = "assets/No-Image-Placeholder.png"
+                for key, value in json_.items():
+                    if key != 'photoUrl' and not type(value) is NoneType:
+                        if value != "":
+                            mongo_data += f"🔹 <b>{key.capitalize()} : </b> {value.title()}<br>"
 
-    elements = draw_networkgraph(filter_key)
-    return mongo_data, photoUrl, elements
+        elements = draw_networkgraph(filter_key)
+
+        latest_publications = fetch_google_scholar_publications(filter_key)
+        summary = generate_summary_by_gpt(mongo_data, elements)
+    else:
+        latest_publications = ""
+        summary = ""
+
+    return mongo_data, photoUrl, elements, latest_publications, summary
 
 # Run the app
 if __name__ == '__main__':

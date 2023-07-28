@@ -1,7 +1,5 @@
 /*Fonts ––––––––––––––––––––––––––––––––––––––––––––––––––*/
-@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
-
+@import url('https://fonts.googleapis.com/css?family=Montserrat&family=Open+Sans&display=swap');
 
 body{
   margin: 0px;
@@ -25,11 +23,15 @@ body{
 }
 
 .h2-title, .h2-title-mobile{
-  font-family: 'Roboto';
+  font-family: 'Open Sans', sans-serif;
   display: inline-block;
   letter-spacing: 3.8px;
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.sub-title{
+    font-family: 'Open Sans', sans-serif;
 }
 
 .h2-title-mobile{
@@ -48,10 +50,6 @@ h5, h6{
   font-size: 16px;
 }
 
-h5{
-  padding-left: 42px;
-}
-
 .bg-white{
   background-color: white;
   padding: 10px 10px;
@@ -60,24 +58,34 @@ h5{
 
 .custom-background {
     background-color: white;
+    padding: 10px 10px;
 }
 
-.bg-white2{
+.bg-white2{ /* for keyword */
     font-family: 'Montserrat';
     background-color: white;
     padding: 10px 10px;
     height: 250px;
 }
 
-.bg-white3 {
-    font-family: 'Montserrat';
-    padding: 10px 10px;
-    height: 250px;
+.publication{
+    width: 330px;
+    height: 100px;
 }
 
-.bg-white4 {
+.summary{
+    width: 330px;
+}
+
+.bg-white3 { /* for professor */
     font-family: 'Montserrat';
+    background-color: white;
     padding: 10px 10px;
+    height: 180px;
+}
+
+.cytograph {
+    font-family: 'Montserrat';
     margin-left: 50%;
 }
 
@@ -120,31 +128,33 @@ h5{
 }
 
 .legend {
+    background-color: white;
+    padding: 10px 10px;
+    height: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-top: 10px;
-  }
+}
   
-  .legend-item {
+.legend-item {
     display: flex;
     align-items: center;
-    margin-right: 20px;
-  }
+    margin-right: 10px;
+}
   
-  .legend-circle {
+.legend-circle {
     display: inline-block;
     width: 10px;
     height: 10px;
     border-radius: 50%;
     margin-right: 5px;
-  }
+}
   
-  .legend-label {
-    font-size: 14px;
-    color: gray;
-  }
+.legend-label {
+font-size: 14px;
+color: gray;
+}
 
 @media only screen and (max-width: 320px){
   .Select-menu-outer, .Select-value{
