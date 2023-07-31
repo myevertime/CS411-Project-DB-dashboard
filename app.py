@@ -11,6 +11,12 @@ from dash import html
 from dash.dependencies import Input, Output, State
 from dash import dash_table
 import dash_cytoscape as cyto
+import mysql.connector
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.express as px
+# Create the Dash app
+group_colors = {"control": "light blue", "reference": "red"}
 
 app = dash.Dash(
     __name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}]
@@ -20,6 +26,20 @@ server = app.server
 #connection_pool = mysql_connector_pool()
 mysqldb = mysql_connector()
 mongodb = mongodb_connector()
+
+# Connect to the MySQL database (Make sure to update the credentials)
+db_connection = mysql.connector.connect(
+    host='127.0.0.1',
+    user='root',
+    password='test_root',
+    database='academicworld'
+)
+
+db_connection_univerisity = mysql.connector.connect(
+    host='127.0.0.1',
+    user='root',
+    password='test_root',
+    database='academicworld')
 
 ##-------------------------
 # Create Base Tables
@@ -49,6 +69,7 @@ cursor.close()
 
 ##-------------------------
 # Get query result from MongoDB
+
 data_from_mongo, mongodb_df = mongodb_query_result(mongodb)
 
 ##-------------------------
@@ -56,8 +77,16 @@ data_from_mongo, mongodb_df = mongodb_query_result(mongodb)
 cursor = mysqldb.cursor()
 cursor.execute("SELECT name FROM keywordView")
 keywords = cursor.fetchall()
-keywords = [keyword[0] for keyword in keywords]
 cursor.close()
+keywords = [keyword[0] for keyword in keywords]
+
+cursor = db_connection.cursor()
+cursor.execute("SELECT name FROM university")
+universities = cursor.fetchall()
+cursor.close()
+# Extract the university names from the fetched data
+university_names = [university[0] for university in universities]
+
 
 ## Get the count for KPI charts
 cursor = mysqldb.cursor()
@@ -225,6 +254,9 @@ app.layout = html.Div(
                                         'fontWeight': 'bold',
                                         },
                                     ],
+
+                                    
+                                    
                                 )
                             ],
                         ),
@@ -430,7 +462,8 @@ app.layout = html.Div(
                         ),
                         html.Pre(id='cytoscape-tapNodeData', style={'border': 'thin lightgrey solid','overflowX': 'auto'}),
                     ]
-                ),
+                ),        
+
             ],
         ),
         # Third body of the App - University Section
@@ -447,14 +480,56 @@ app.layout = html.Div(
                                 html.Div(
                                     className="padding-top-bot",
                                     children=[
-                                        html.H4("Search by university"),
+                                        html.H4("Search By University"),
                                         ##
+                                        dcc.Dropdown(
+                                        id='university-filter',
+                                        options=[{'label': university, 'value': university} for university in university_names],
+                                        placeholder='Select a university that you\'re interested in',),
                                     ]
                                 )
                             ]
-                        )
+                        ),
+                        html.Div(
+                             className="bg-white3",
+                             children=[
+                                 # Pie Chart: Top 5 Related Keywords and KRC
+                                 html.H6("Key Domains"),
+                                 dcc.Graph(id='univ-pie-chart')
+                                 
+                             ],
+                             style={'height': 'auto',
+                                    'display':'normal'
+     }
+                             
+                         ),
+                         html.Div(
+                             className="bg-white3",
+                             children=[
+                                 # Bar Chart: Top 5 Most Popular Publications
+                                 html.H6("Most Popular Publications"),
+                                 dcc.Graph(id='univ-bar-chart')
+                             ],
+                             style={'height': 'auto',
+                                    'display':'normal'
+                                    
+                                    
+                                   }
+                         ),
+                         html.Div(
+                             className="bg-white3",
+                             children=[
+                                 # Line Chart: Publication Counts per Year in the Last 10 Years
+                                 html.H6("Publication Trend"),
+                                 dcc.Graph(id='univ-line-chart')
+                             ],
+                             style={'height': 'auto',
+                                    'display':'normal'
+                                  }
+                         ),
                     ]
                 ),
+
                 # Fourth body of the App - Update Section
                 html.Div(
                     className="five columns card",
@@ -676,6 +751,95 @@ def update_mongo_data(n_clicks, name, position, corrected_name, corrected_positi
         else:
             fail_popup_displayed = True
     return success_popup_displayed, fail_popup_displayed
+
+# Callback functions for University Widgets
+# Callback for Pie Chart: Top 5 Related Keywords and KRC
+
+
+@app.callback(
+    Output('univ-pie-chart', 'figure'),
+    Output('univ-bar-chart', 'figure'),
+    Output('univ-line-chart', 'figure'),
+    [Input('university-filter', 'value')]
+)
+
+def update_univ_widgets(university):
+    # Fetch data from the MySQL database based on the selected university
+    cursor = db_connection_univerisity.cursor()
+
+    # Pie Chart: Top 5 Related Keywords and KRC
+    query_pie_chart = "SELECT keyword_name, fac_cnt, KRC FROM keyword_univ_final WHERE university_name = %s"
+    cursor.execute(query_pie_chart, (university,))
+    result_pie_chart = cursor.fetchall()
+
+    # Process the result for the pie chart
+    df_pie_chart = pd.DataFrame(result_pie_chart, columns=['keyword_name', 'fac_cnt', 'KRC'])
+    keyword_name_mapping = {
+    'computer vision': 'CV',
+    'artificial intelligence': 'AI',
+    'machine learning': 'ML',
+    'natural language processing': 'NLP'
+}
+
+    df_pie_chart['keyword_name'] = df_pie_chart['keyword_name'].map(keyword_name_mapping)
+    df_pie_chart['fac_cnt'] = df_pie_chart['fac_cnt'].astype(int)
+    df_pie_chart['KRC'] = df_pie_chart['KRC']
+    df_pie_chart['fac_cnt'] = pd.to_numeric(df_pie_chart['fac_cnt'])
+    df_pie_chart['hovertext'] = 'Top Faculty: ' + df_pie_chart['fac_cnt'].astype(str) + '<br>KRC: ' + df_pie_chart['KRC'].apply(lambda x: f'{x:.2f}')
+    pie_chart_fig = go.Figure(data=[go.Pie(labels=df_pie_chart['keyword_name'], values=df_pie_chart['fac_cnt'],hovertext=df_pie_chart['hovertext'],textinfo='label+percent')])
+    #pie_chart_fig.update_layout(title='Key Domains')
+    pie_chart_fig.update_traces(hovertemplate='<br>%{customdata}', customdata=df_pie_chart['hovertext'])
+
+    # Set the textinfo to 'text' to display the custom text on each segment
+
+
+
+    # Bar Chart: Top 5 Most Popular Publications
+    query_bar_chart = """
+    SELECT p.title, p.venue, p.year, p.num_citations , f.name
+    FROM publication p
+    INNER JOIN faculty_publication fp ON p.id = fp.publication_id
+    INNER JOIN faculty f ON fp.faculty_id = f.id
+    INNER JOIN university u ON f.university_id = u.id
+    WHERE u.name = %s
+    ORDER BY p.num_citations DESC
+    LIMIT 5
+    """
+    cursor.execute(query_bar_chart, (university,))
+    result_bar_chart = cursor.fetchall()
+
+    # Process the result for the bar chart
+    df_bar_chart = pd.DataFrame(result_bar_chart, columns=['Title', 'Venue', 'Year', 'Number of citations','Faculty name'])
+    df_bar_chart = df_bar_chart.sort_values('Number of citations', ascending=True)
+    bar_chart_fig = px.bar(df_bar_chart, x='Number of citations', y='Faculty name', orientation='h', hover_data=['Title', 'Venue','Year'])
+    #bar_chart_fig.update_layout(title='Most Popular Publications')
+
+    # Line Chart: Publication Counts per Year
+    query_line_chart = """
+    SELECT p.year, COUNT(p.id) as total_pub_cnt
+    FROM publication p
+    INNER JOIN faculty_publication fp ON p.id = fp.publication_id
+    INNER JOIN faculty f ON fp.faculty_id = f.id
+    INNER JOIN university u ON f.university_id = u.id
+    WHERE u.name = %s
+    GROUP BY p.year
+    ORDER BY p.year DESC
+    LIMIT 10
+    """
+    cursor.execute(query_line_chart, (university,))
+    result_line_chart = cursor.fetchall()
+
+    # Process the result for the line chart
+    df_line_chart = pd.DataFrame(result_line_chart, columns=['Year', 'Publication count'])
+    line_chart_fig = px.line(df_line_chart, x='Year', y='Publication count')
+    #line_chart_fig.update_layout(title='Publication Trend')
+
+    cursor.close()
+
+    return pie_chart_fig, bar_chart_fig, line_chart_fig
+
+
+
 
 # Run the app
 if __name__ == '__main__':
