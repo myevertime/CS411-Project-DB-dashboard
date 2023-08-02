@@ -58,6 +58,7 @@ h5, h6{
 
 .bg-white5{ /* for update section */
   background-color: white;
+  font-family: 'Montserrat';
   padding: 10px 10px;
   height: 450px;
   margin-top: 10px;
@@ -84,7 +85,7 @@ h5, h6{
     width: 330px;
 }
 
-.bg-white3 { /* for professor */
+.bg-white3 { /* for professor and university */
     font-family: 'Montserrat';
     background-color: white;
     padding: 10px 10px;

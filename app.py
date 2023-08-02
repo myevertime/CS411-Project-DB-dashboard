@@ -472,7 +472,7 @@ app.layout = html.Div(
             children=[
                 # User Controls
                 html.Div(
-                    className="seven columns card",
+                    className="card",
                     children=[
                         html.Div(
                             className="bg-white user-control",
@@ -495,13 +495,10 @@ app.layout = html.Div(
                              children=[
                                  # Pie Chart: Top 5 Related Keywords and KRC
                                  html.H6("Key Domains"),
-                                 dcc.Graph(id='univ-pie-chart')
-                                 
+                                 dcc.Graph(id='univ-pie-chart')      
                              ],
                              style={'height': 'auto',
-                                    'display':'normal'
-     }
-                             
+                                    'display':'normal'}
                          ),
                          html.Div(
                              className="bg-white3",
@@ -511,10 +508,7 @@ app.layout = html.Div(
                                  dcc.Graph(id='univ-bar-chart')
                              ],
                              style={'height': 'auto',
-                                    'display':'normal'
-                                    
-                                    
-                                   }
+                                    'display':'normal'}
                          ),
                          html.Div(
                              className="bg-white3",
@@ -524,60 +518,59 @@ app.layout = html.Div(
                                  dcc.Graph(id='univ-line-chart')
                              ],
                              style={'height': 'auto',
-                                    'display':'normal'
-                                  }
+                                    'display':'normal'}
                          ),
-                    ]
+                    ], style={"display": "flex", 'flex-direction': 'column'}
                 ),
 
-                # Fourth body of the App - Update Section
+            ]
+        ),
+        # Fourth body of the App - Update Section
+        html.Div(
+            className="five columns card",
+            children=[
                 html.Div(
-                    className="five columns card",
+                    className="bg-white5",
                     children=[
                         html.Div(
-                            className="bg-white5",
+                            className="bg-white",
                             children=[
-                                html.Div(
-                                    className="bg-white",
-                                    children=[
-                                        html.H4("Found Bugs? Please update the correct data here"),
-                                        html.P("You can only correct the professor information since all other dashboards are based on aggregated data."),
-                                    ], style={'margin-bottom': '30px'}
-                                ),
-                                html.Div(
-                                    #className="bg-white5 custom-background",
-                                    children=[
-                                        html.Div([
-                                            dcc.Input(id='input-name', type='text', placeholder='Enter original name (required)', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
-                                            dcc.Input(id='input-corrected-name', type='text', placeholder='Enter corrected name', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
-                                        ], style={'margin-bottom': '10px'}),
-                                        html.Div([
-                                            dcc.Input(id='input-position', type='text', placeholder='Enter original position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
-                                            dcc.Input(id='input-corrected-position', type='text', placeholder='Enter corrected position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
-                                        ], style={'margin-bottom': '10px'}),
-                                        html.Div([
-                                            dcc.Input(id='input-email', type='text', placeholder='Enter original email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
-                                            dcc.Input(id='input-corrected-email', type='text', placeholder='Enter corrected email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
-                                        ], style={'margin-bottom': '10px'}),
-                                        html.Div([
-                                            dcc.Input(id='input-phone', type='text', placeholder='Enter original phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
-                                            dcc.Input(id='input-corrected-phone', type='text', placeholder='Enter corrected phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
-                                        ], style={'margin-bottom': '10px'}),
-                                        html.Button('Submit', id='submit-button', style={'width':'300px','height': '40px', 'font-size': '15px', 'text-align': 'center'})
-                                    ], style={'display': 'flex', 'flex-direction': 'column'}  
-                                ),
-                                # ConfirmDialog to show a pop-up when the update is successful
-                                dcc.ConfirmDialog(
-                                    id='revise-success-popup',
-                                    message='Update successful! Now search by newly updated data',
-                                ),
-                                # FailDialog to show a pop-up when the update is unsuccessful
-                                dcc.ConfirmDialog(
-                                    id='revise-fail-popup',
-                                    message='Update Failed! No matching record found for the given name and position.',
-                                ),
-                            ]
-                        )
+                                html.H4("Found Bugs? Please update the correct data here"),
+                                html.P("You can only correct the professor information since all other dashboards are based on aggregated data."),
+                            ], style={'margin-bottom': '30px'}
+                        ),
+                        html.Div(
+                            #className="bg-white5 custom-background",
+                            children=[
+                                html.Div([
+                                    dcc.Input(id='input-name', type='text', placeholder='Enter original name (required)', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                    dcc.Input(id='input-corrected-name', type='text', placeholder='Enter corrected name', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                ], style={'margin-bottom': '10px'}),
+                                html.Div([
+                                    dcc.Input(id='input-position', type='text', placeholder='Enter original position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                    dcc.Input(id='input-corrected-position', type='text', placeholder='Enter corrected position', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                ], style={'margin-bottom': '10px'}),
+                                html.Div([
+                                    dcc.Input(id='input-email', type='text', placeholder='Enter original email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                    dcc.Input(id='input-corrected-email', type='text', placeholder='Enter corrected email', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                ], style={'margin-bottom': '10px'}),
+                                html.Div([
+                                    dcc.Input(id='input-phone', type='text', placeholder='Enter original phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block', 'margin-right':'10px'}),
+                                    dcc.Input(id='input-corrected-phone', type='text', placeholder='Enter corrected phone number', style={'width':'250px','height': '30px', 'font-size': '15px', 'display': 'inline-block'}),
+                                ], style={'margin-bottom': '10px'}),
+                                html.Button('Submit', id='submit-button', style={'width':'300px','height': '40px', 'font-size': '15px', 'text-align': 'center'})
+                            ], style={'display': 'flex', 'flex-direction': 'column'}  
+                        ),
+                        # ConfirmDialog to show a pop-up when the update is successful
+                        dcc.ConfirmDialog(
+                            id='revise-success-popup',
+                            message='Update successful! Now search by newly updated data',
+                        ),
+                        # FailDialog to show a pop-up when the update is unsuccessful
+                        dcc.ConfirmDialog(
+                            id='revise-fail-popup',
+                            message='Update Failed! No matching record found for the given name and position.',
+                        ),
                     ]
                 )
             ]
@@ -712,6 +705,17 @@ def update_professor(filter_key):
         summary = ""
 
     return mongo_data, photoUrl, elements, latest_publications, summary
+
+# make flexible length of summary section
+@app.callback(
+    Output("summary-section", "style"),
+    Input("summary-text", "children")
+)
+def update_summary_section_style(markdown_content):
+    # Calculate the height based on the length of the content
+    content_length = len(markdown_content)
+    max_height = min(500, content_length * 20)
+    return {"maxHeight": f"{max_height}px"}
 
 @app.callback(
     [Output('revise-success-popup', 'displayed'),
