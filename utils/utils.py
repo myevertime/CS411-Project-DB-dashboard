@@ -126,20 +126,20 @@ def fetch_google_scholar_publications(professor_name):
     # set up the request parameters
     params = {
         'api_key': f'{SERP_API_KEY}',
-        'search_type': 'scholar',
+        'engine': 'google_scholar',
         'q': f'{professor_name}',
         'sort_by' : 'date',
     }
 
     # make the http GET request to Scale SERP
-    api_result = requests.get('https://api.scaleserp.com/search', params)
+    api_result = requests.get('https://serpapi.com/search', params)
 
     data = api_result.json()
 
     # Access the "scholar_results" list and loop through its items
     publications = []
-    if "scholar_results" in data.keys():
-        for item in data["scholar_results"]:
+    if "organic_results" in data.keys():
+        for item in data["organic_results"]:
             title = item["title"]
             link = item["link"]
             #snippet = item["snippet"]
