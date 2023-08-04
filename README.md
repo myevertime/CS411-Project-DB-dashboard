@@ -121,7 +121,7 @@ We have also included a 'Database Update' section in the bottom-right corner of 
 ### Contributions:
 The development of the University Explorer dashboard is a collaborative effort, and the following team members have contributed to this project:
 
-| Name            | @hyeonjae-cho                  | @gaotianzheng                  |
+| Name            | @hyeonjae-cho                  | @gaotianzheng              |
 |-----------------|------------------------------|------------------------------|
-| Working Hours   | 63 hours (approx)            | x hours                      |
+| Working Hours   | 63 hours (approx)            | 20 hours (approx)            |
 | Responsibilities| - Designed and implemented the Area and Professor sections of the dashboard, integrating data from MySQL and using Plotly for visualizations.<br>- Implemented additional capabilities: ChatGPT and Google Scholars for external data sourcing, multi-database querying, and data expansion.<br>- Developed the database update section to allow user bug input.<br>- Participated in creating a demo video to showcase the application's core features.| - Designed and implemented the University Section of the dashboard, integrating data from MySQL and presenting visualizations using Plotly.<br>- Collaborated with Hyeonjae Cho in reviewing and testing the overall functionality of the application.<br>- Authored the README file, providing project overview, technical details, feature documentation, and local setup instructions.<br>- Participated in creating a demo video to showcase the application's core features.|
