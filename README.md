@@ -5,7 +5,7 @@ University Explorer - A Comprehensive Dashboard for Computer Science Students
 We developed a web-based dashboard designed to assist students who are aspiring to pursue a computer science major. The primary motivation behind this project is to address the lack of comprehensive information available about faculty and publications in various universities, which often hinders students from making well-informed decisions. Our team aims to create an interactive web dashboard that provides all the necessary details to help students choose the right university based on their preferences and interests.
 
 ### Demo
-Add the demo link later.
+https://mediaspace.illinois.edu/media/t/1_fh4nxxxa
 
 ### Installation
 To install the University Explorer application, follow these steps:
