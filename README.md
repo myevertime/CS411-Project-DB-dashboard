@@ -105,15 +105,15 @@ We utilize prepared statements to execute parameterized queries. More specifical
 <hr>
 
 ### Extra-Credit Capabilities
-In addition to the core functionalities, we have developed several extra-credit capabilities. The four advanced features include:
+In addition to the core functionalities, we have developed several extra-credit capabilities. The _four_ advanced features include:
 
 1. **External Data Sourcing**: Google Scholars Integration for Comprehensive Research
 To provide students with a broader perspective on academic research, we have integrated data from Google Scholars using the SERP API. This integration allows students to access up-to-date information about academic publications presenting the title of the publication along with an embedded hyperlink within it.
 
-2. **Multi-database querying & Data Expansion**: ChatGPT Summary for Simplified Data Comprehension
+2. **Multi-database querying & 3. Data Expansion**: ChatGPT Summary for Simplified Data Comprehension
 Our integration of ChatGPT helps students receive concise and easy-to-understand summaries since document data and network graphs are hard to grasp the information quickly. ChatGPT consolidates data from multiple sources, MongoDB and Neo4j, and freely summarizes key information by itself.
 
-3. **Data Cleaning**: "Find Bugs?" Section
+4. **Data Cleaning**: "Find Bugs?" Section
 We have also included a 'Database Update' section in the bottom-right corner of the website, allowing users to report any incorrect or up-to-date information. This section requires the user to input the professor's name, which is used to match the corresponding records in the MongoDB database for updating. Users have the option to update the professor's name, position, phone number, and email address, all of which are sourced from MongoDB. The provided input will be used to update the MongoDB database accordingly.
 
 <hr>
